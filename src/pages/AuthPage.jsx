@@ -1,13 +1,18 @@
+import {
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  getAuth,
+  signInWithEmailAndPassword,
+  signInWithPopup
+} from "firebase/auth";
 import { Row, Col, Image, Button, Modal, Form } from "react-bootstrap";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import useLocalStorage from "use-local-storage";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../components/AuthProvider";
 
 export default function AuthPage() {
   const loginImage = "https://sig1.co/img-twitter-1";
-  const base_url =
-    "https://38f2b79d-47ac-4054-85cb-7ad284aed8c0-00-2ky1q519xwcxq.riker.replit.dev";
+
   const [modalShow, setModalShow] = useState(null);
   const handleShowSignUp = () => setModalShow("SignUp");
   const handleShowLogin = () => setModalShow("Login");
@@ -15,109 +20,75 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [authToken, setAuthToken] = useLocalStorage("authToken", "");
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
+  const auth = getAuth();
+  const { currentUser } = useContext(AuthContext);
+
   useEffect(() => {
-    if (authToken) {
+    if (currentUser) {
       navigate("/profile");
     }
-  }, [authToken, navigate]);
+  }, [currentUser, navigate]);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
 
-    let hasError = false;
-
-    if (username === "") {
-      setUsernameError("Please fill in username");
-      hasError = true;
-    }
-
-    if (password === "") {
-      setPasswordError("Please fill in password");
-      hasError = true;
-    } else if (!/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm.test(password)) {
-      setPasswordError("Password must contain at least 8 characters, including at least one digit, one lowercase letter, and one uppercase letter");
-      hasError = true;
-    }
-
-    if (hasError) {
-      return;
-    }
-
     try {
-      
-      const response = await axios.post(`${base_url}/signup`, {
+      const res = await createUserWithEmailAndPassword(
+        auth,
         username,
         password,
-      });
-      
-      alert("User registered successfully");
-      
-    } catch (error) {
+      );
 
-      if (error.response && error.response.data && error.response.data.message === "Username already taken.") {
-        setUsernameError("Username is already taken");
-      } else {
-        console.log(error);
-        alert("An error occurred while signing up. Please try again later.");
-      }
-      
+      console.log(res.user);
+    } catch (error) {
+      console.error(error);
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    let hasError = false;
-
-    if (username === "") {
-      setUsernameError("Please fill in username");
-      hasError = true;
-    }
-
-    if (password === "") {
-      setPasswordError("Please fill in password");
-      hasError = true;
-    }
-
-     if (hasError) {
-       return;
-     }
-
     try {
-      
-      const response = await axios.post(`${base_url}/login`, { username, password });
-      if (response.data && response.data.auth === true && response.data.token) {
-        setAuthToken(response.data.token);
-        console.log("Login was successful, token saved");
-      }
-      
+      await signInWithEmailAndPassword(auth, username, password);
     } catch (error) {
-      
-      if (error.response && error.response.data && error.response.data.message === "Username is incorrect") {
-        setUsernameError("Username is incorrect");
-      } else if (error.response && error.response.data && error.response.data.message === "Password is incorrect") {
-        setPasswordError("Password is incorrect");
-      } else {
-        alert("An error occurred while logging in. Please try again later.");
+      console.error(error);
+
+      console.log(error.message);
+
+      if (error.message.includes("auth/invalid-credential")) {
+        setError('Invalid username or password');
       }
-      
     }
   };
+
+
+  const provider = new GoogleAuthProvider();
+  
+  const handleGoogleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
 
   const handleClose = () => setModalShow(null);
 
   const handleUsernameChange = (e) => {
     setUsername(e.target.value);
-    setUsernameError('');
+    setUsernameError("");
   };
 
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
-    setPasswordError('');
+    setPasswordError("");
   };
 
   return (
@@ -139,7 +110,7 @@ export default function AuthPage() {
         </h2>
 
         <Col sm={5} className="d-grid gap-2">
-          <Button className="rounded-pill" variant="outline-dark">
+          <Button className="rounded-pill" variant="outline-dark" onClick={handleGoogleLogin}>
             <i className="bi bi-google"></i> Sign up with Google
           </Button>
 
@@ -162,16 +133,30 @@ export default function AuthPage() {
             Already have an account?
           </p>
 
-          <Button className="rounded-pill" variant="outline-primary" onClick={handleShowLogin}>
+          <Button
+            className="rounded-pill"
+            variant="outline-primary"
+            onClick={handleShowLogin}
+          >
             Sign In
           </Button>
         </Col>
-        <Modal show={modalShow !== null} onHide={handleClose} animation="false" centered>
+        <Modal
+          show={modalShow !== null}
+          onHide={handleClose}
+          animation="false"
+          centered
+        >
           <Modal.Body>
             <h2 className="mb-4" style={{ fontWeight: "bold" }}>
-              {modalShow === 'SignUp' ? 'Create your account' : 'Login to your account'}
+              {modalShow === "SignUp"
+                ? "Create your account"
+                : "Login to your account"}
             </h2>
-            <Form className="d-grid gap-2 px-5" onSubmit={modalShow === 'SignUp' ? handleSignUp : handleLogin}>
+            <Form
+              className="d-grid gap-2 px-5"
+              onSubmit={modalShow === "SignUp" ? handleSignUp : handleLogin}
+            >
               <Form.Group className="mb-3" controlId="formBasicEmail">
                 <Form.Control
                   onChange={handleUsernameChange}
@@ -182,11 +167,13 @@ export default function AuthPage() {
               </Form.Group>
 
               <Form.Group className="mb-3" controlId="formBasicPassword">
-                <Form.Control onChange={handlePasswordChange}
+                <Form.Control
+                  onChange={handlePasswordChange}
                   type="password"
                   placeholder="Password"
                 />
                 <span className="text-danger">{passwordError}</span>
+                <span className="text-danger">{error}</span>
               </Form.Group>
               <p style={{ fontSize: "12px" }}>
                 By signing up, you agree to the Terms and Service and Privacy
@@ -198,7 +185,7 @@ export default function AuthPage() {
                 number, when provided, unless you choose otherwise here.
               </p>
               <Button className="rounded-pill" type="submit">
-                {modalShow === 'SignUp' ? 'Sign up' : 'Log in' }
+                {modalShow === "SignUp" ? "Sign up" : "Log in"}
               </Button>
             </Form>
           </Modal.Body>

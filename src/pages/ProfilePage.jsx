@@ -1,45 +1,54 @@
+import { getAuth } from "firebase/auth";
 import { Navbar, Container, Button, Row } from "react-bootstrap";
-import { useState, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import useLocalStorage from "use-local-storage";
+import { AuthContext } from "../components/AuthProvider";
 import ProfileSideBar from "../components/ProfileSideBar";
 import ProfileMidBody from "../components/ProfileMidBody";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState("");
-  const [authToken, setAuthToken] = useLocalStorage("authToken", "");
+  const auth = getAuth();
   const navigate = useNavigate();
-  const base_url =
-    "https://38f2b79d-47ac-4054-85cb-7ad284aed8c0-00-2ky1q519xwcxq.riker.replit.dev";
+  const { currentUser } = useContext(AuthContext);
 
-  useEffect(() => {
-    if (!authToken) {
-      navigate("/login");
-    } else {
-      fetchUserDetails();
-    }
-  }, [authToken, navigate]);
+  // check if current user is logged in
+  if (!currentUser) {
+    navigate("/login"); // redirect to login if user not logged in
+  }
+  
+  // const [user, setUser] = useState("");
+  // const [authToken, setAuthToken] = useLocalStorage("authToken", "");
+  // const base_url =
+  //   "https://38f2b79d-47ac-4054-85cb-7ad284aed8c0-00-2ky1q519xwcxq.riker.replit.dev";
 
-  const fetchUserDetails = async () => {
-    try {
-      const response = await fetch(`${base_url}/username`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        throw new Error("Failed to fetch user details");
-      }
-    } catch (error) {
-      console.error("Error fetching user details:", error.message);
-    }
-  };
+  // useEffect(() => {
+  //   if (!authToken) {
+  //     navigate("/login");
+  //   } else {
+  //     fetchUserDetails();
+  //   }
+  // }, [authToken, navigate]);
+
+  // const fetchUserDetails = async () => {
+  //   try {
+  //     const response = await fetch(`${base_url}/username`, {
+  //       headers: {
+  //         Authorization: `Bearer ${authToken}`,
+  //       },
+  //     });
+  //     if (response.ok) {
+  //       const userData = await response.json();
+  //       setUser(userData);
+  //     } else {
+  //       throw new Error("Failed to fetch user details");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching user details:", error.message);
+  //   }
+  // };
 
   const handleLogout = () => {
-    setAuthToken("");
+    auth.signOut();
   };
 
   return (
@@ -70,7 +79,7 @@ export default function ProfilePage() {
         </Container>
       </Navbar>
 
-      <Container className="mx-2">
+      {/* <Container className="mx-2">
         {user && (
           <>
             <h2 className="mt-3">Your profile</h2>
@@ -87,7 +96,7 @@ export default function ProfilePage() {
             </div>
           </>
         )}
-      </Container>
+      </Container> */}
 
       <Container className="mx-0">
         <Row>
