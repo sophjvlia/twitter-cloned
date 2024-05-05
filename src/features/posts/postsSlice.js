@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import { db, storage } from "../../firebase";
+import { db, storage } from '@firebase';
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 export const deletePost = createAsyncThunk(
