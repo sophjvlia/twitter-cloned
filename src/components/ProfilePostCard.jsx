@@ -31,7 +31,6 @@ export default function ProfilePostCard({ post }) {
     dispatch(likePost({ userId, postId }));
   };
 
-
   const removeFromLikes = () => {
 
     setLikes(likes.filter((id) => id !== userId));

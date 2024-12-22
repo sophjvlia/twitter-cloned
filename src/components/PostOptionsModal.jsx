@@ -8,7 +8,7 @@ export default function PostOptionsModal({ show, handleClose, postId }) {
 
   useEffect(() => {
 
-    fetch(`https://38f2b79d-47ac-4054-85cb-7ad284aed8c0-00-2ky1q519xwcxq.riker.replit.dev/posts/${postId}`)
+    fetch(`https://9e306cfc-24b8-4ff2-a215-5fae80eb0507-00-2q4g0edn44be2.pike.replit.dev/posts/${postId}`)
     .then(response => response.json())
     .then(data => setPostContent(data.post.content))
     .catch(error => console.error('Error: ', error));
@@ -23,7 +23,7 @@ export default function PostOptionsModal({ show, handleClose, postId }) {
   function handleDelete() {
 
     axios
-    .delete(`https://38f2b79d-47ac-4054-85cb-7ad284aed8c0-00-2ky1q519xwcxq.riker.replit.dev/posts/${postId}`)
+    .delete(`https://9e306cfc-24b8-4ff2-a215-5fae80eb0507-00-2q4g0edn44be2.pike.replit.dev/posts/${postId}`)
     .then((response) => {
       console.log("Deleted successfully ", response.data);
       handleClose();
@@ -46,7 +46,7 @@ export default function PostOptionsModal({ show, handleClose, postId }) {
 
     // API call 
     axios
-      .put(`https://38f2b79d-47ac-4054-85cb-7ad284aed8c0-00-2ky1q519xwcxq.riker.replit.dev/posts/${postId}`, post_data)
+      .put(`https://9e306cfc-24b8-4ff2-a215-5fae80eb0507-00-2q4g0edn44be2.pike.replit.dev/posts/${postId}`, post_data)
       .then((response) => {
         console.log('Success: ', response.data);
         setShowEditModal(false);
